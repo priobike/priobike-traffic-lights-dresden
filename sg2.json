@@ -1,0 +1,226 @@
+{
+	"description": "Connection of lanes subject to a specific signal head",
+	"@iot.id": 13,
+	"name": "SG2",
+	"properties": {
+		"topic": "Transportation and traffic",
+		"assetID": "Not available",
+		"keywords": [
+			"TLF",
+			"LSA",
+			"Dresden"
+		],
+		"laneType": "Radfahrer",
+		"language": "EN",
+		"ownerThing": "TU Dresden",
+		"connectionID": "1",
+		"egressLaneID": "41",
+		"ingressLaneID": "8",
+		"infoLastUpdate": "2021-10-22T07:40:29.229+00:00",
+		"trafficLightsID": "2"
+	},
+	"@iot.selfLink": "http://priobike.vkw.tu-dresden.de:20055/FROST-Server/v1.1/Things(13)",
+	"Locations": [
+		{
+			"description": "The given geometry composed out of ingress lane, egress lane and the real route represents the location of the lane connection.",
+			"encodingType": "application/vnd.geo+json",
+			"@iot.id": 19,
+			"location": {
+				"type": "Feature",
+				"geometry": {
+					"type": "MultiLineString",
+					"coordinates": [
+						[
+							[
+								13.728169351816177,
+								51.03045041595969
+							],
+							[
+								13.728149235248566,
+								51.03061446287988
+							]
+						],
+						[
+							[
+								13.728149235248566,
+								51.03061783658934
+							],
+							[
+								13.728147894144058,
+								51.030635548560134
+							],
+							[
+								13.727828040719032,
+								51.03061488459357
+							]
+						],
+						[
+							[
+								13.727819323539734,
+								51.03061446287988
+							],
+							[
+								13.72727483510971,
+								51.0305756652031
+							]
+						]
+					]
+				}
+			},
+			"name": "SG2",
+			"@iot.selfLink": "http://priobike.vkw.tu-dresden.de:20055/FROST-Server/v1.1/Locations(19)"
+		}
+	],
+	"Datastreams": [
+		{
+			"description": "A unique ID (name) of the current signal program of the traffic light. It is not the control program",
+			"@iot.id": 38,
+			"name": "Signal program ID at SG2",
+			"observationType": "http://defs.opengis.net/elda-common/ogc-def/resource?uri=http://www.opengis.net/def/property/OGC/0/SensorStatus",
+			"properties": {
+				"layerName": "signal_program",
+				"namespace": "Not yet available",
+				"ownerData": "Free and Hanseatic City of Hamburg",
+				"serviceName": "HH_STA_traffic_lights",
+				"resultsNature": "Primary",
+				"signalGroupID": "K2",
+				"mediaMonitored": "Transport",
+				"lastUpdateSignalProgram": "2021-10-22T07:40:30.138+00:00"
+			},
+			"resultTime": null,
+			"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Datastreams(38)",
+			"unitOfMeasurement": {
+				"name": "Status",
+				"symbol": "-",
+				"definition": "morgen, mittag, ..."
+			},
+			"Sensor": {
+				"description": "Not available",
+				"encodingType": "Not available",
+				"@iot.id": 39,
+				"metadata": "Not available",
+				"name": "Signal program indicator",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Sensors(39)"
+			},
+			"ObservedProperty": {
+				"description": "A signal is information broadcasted e.g. visually or acoustically. The possible transmitted information is reported in the API entity 'datastream' using the 'unitOfMeasurment'-field",
+				"definition": "Not available",
+				"@iot.id": 40,
+				"name": "Signal",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/ObservedProperties(40)"
+			}
+		},
+		{
+			"description": "Current second in the traffic signal cycle",
+			"@iot.id": 37,
+			"name": "Cycle second at SG2",
+			"observationType": "Primary",
+			"properties": {
+				"layerName": "cycle_second",
+				"namespace": "Not yet available",
+				"ownerData": "Free and Hanseatic City of Hamburg",
+				"serviceName": "HH_STA_traffic_lights",
+				"resultsNature": "Primary",
+				"signalGroupID": "K2",
+				"mediaMonitored": "Transport",
+				"lastUpdateCycleSecond": "2021-10-22T07:40:30.140+00:00"
+			},
+			"resultTime": null,
+			"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Datastreams(37)",
+			"unitOfMeasurement": {
+				"name": "Second",
+				"symbol": "s",
+				"definition": ""
+			},
+			"Sensor": {
+				"description": "Not available",
+				"encodingType": "Not available",
+				"@iot.id": 38,
+				"metadata": "Not available",
+				"name": "Cycle second indicator",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Sensors(38)"
+			},
+			"ObservedProperty": {
+				"description": "A signal is information broadcasted e.g. visually or acoustically. The possible transmitted information is reported in the API entity 'datastream' using the 'unitOfMeasurment'-field",
+				"definition": "Not available",
+				"@iot.id": 39,
+				"name": "Signal",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/ObservedProperties(39)"
+			}
+		},
+		{
+			"description": "Datastream to broadcast the lane connection's detector status value",
+			"@iot.id": 36,
+			"name": "Signal change request - cyclists at SG2",
+			"observationType": "http://defs.opengis.net/elda-common/ogc-def/resource?uri=http://www.opengis.net/def/ogc-om/OM_Measurement",
+			"properties": {
+				"layerName": "detector_cyclists",
+				"namespace": "Not yet available",
+				"ownerData": "Free and Hanseatic City of Hamburg",
+				"serviceName": "HH_STA_traffic_lights",
+				"resultsNature": "Transport",
+				"signalGroupID": "K2",
+				"mediaMonitored": "Landscape"
+			},
+			"resultTime": null,
+			"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Datastreams(36)",
+			"unitOfMeasurement": {
+				"name": "bool",
+				"symbol": "/",
+				"definition": "True vs. False"
+			},
+			"Sensor": {
+				"description": "A detector actively sensing or passively beeing activated to transmit a signal change request of a traffic participant (pedestrian, cyclist, motorized vehicle).",
+				"encodingType": "Not available",
+				"@iot.id": 37,
+				"metadata": "Detectors serve to gain information on traffic. Various types of detectors are used for the different groups of road users. Amongst others these can be  inductive loops and infrared detectors for motor vehicles and bicycles or  touch sensors for requests by pedestrians and cyclists. ",
+				"name": "Traffic participant detector",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Sensors(37)"
+			},
+			"ObservedProperty": {
+				"description": "Not available",
+				"definition": "http://defs.opengis.net/elda-common/ogc-def/resource?uri=http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_CategoryObservation",
+				"@iot.id": 38,
+				"name": "Signalprogram status",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/ObservedProperties(38)"
+			}
+		},
+		{
+			"description": "Datastream to broadcast the lane connection's signal value of a signal group",
+			"@iot.id": 35,
+			"name": "Primary signal heads at SG2",
+			"observationType": "http://defs.opengis.net/elda-common/ogc-def/resource?uri=http://www.opengis.net/def/property/OGC/0/SensorStatus",
+			"properties": {
+				"layerName": "primary_signal",
+				"namespace": "Not yet available",
+				"ownerData": "Free and Hanseatic City of Hamburg",
+				"serviceName": "HH_STA_traffic_lights",
+				"resultsNature": "Primary",
+				"signalGroupID": "K2",
+				"mediaMonitored": "Transport"
+			},
+			"resultTime": null,
+			"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Datastreams(35)",
+			"unitOfMeasurement": {
+				"name": "Status",
+				"symbol": "Integer dimensionless",
+				"definition": "0=dark,1=red,2=amber,3=green,4=red-amber,5=amber-flashing,6=green-flashing,9=unknown"
+			},
+			"Sensor": {
+				"description": "A signal head emits information. The data specific implementation/type of signal heads is described in the 'datastream'",
+				"encodingType": "Not available",
+				"@iot.id": 36,
+				"metadata": "Signal heads belong to the basic components of a traffic signal system. Depending on the road users and the applications to which the signals are assigned different signal heads exist. Optical signal heads generally apply to motor vehicle signals, pedestrian signals, cycle signals, tram and bus signals, auxiliary signals (amber flashing light), speed signals",
+				"name": "Signal heads of traffic lights",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/Sensors(36)"
+			},
+			"ObservedProperty": {
+				"description": "A signal is information broadcasted e.g. visually or acoustically. The possible transmitted information is reported in the API entity 'datastream' using the 'unitOfMeasurment'-field",
+				"definition": "Not available",
+				"@iot.id": 37,
+				"name": "Signal",
+				"@iot.selfLink": "http://localhost:8080/FROST-Server/v1.1/ObservedProperties(37)"
+			}
+		}
+	]
+}
