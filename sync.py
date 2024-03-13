@@ -250,7 +250,7 @@ for i, geometry in tqdm(enumerate(traffic_light_geometries)):
         "Datastreams": [
             dstr_program,
             dstr_cycle,
-            dstr_cycle,
+            dstr_primary,
         ]
     }
 
