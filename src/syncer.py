@@ -31,24 +31,40 @@ def sync_things():
             requests.delete(f'{BASE_URL}Things({thing["@iot.id"]})')
         assert response.status_code == 201 or response.status_code == 200
 
-    print("Inserting SG1 and SG2 into the FROST server.")
-    with open('sg1.json') as f:
-        sg1 = json.load(f)
-    response = requests.post(f'{BASE_URL}Things', json=sg1)
-    assert response.status_code == 201 or response.status_code == 200
-
-    with open('sg2.json') as f:
-        sg2 = json.load(f)
-    response = requests.post(f'{BASE_URL}Things', json=sg2)
-    assert response.status_code == 201 or response.status_code == 200
-
     with open('locations.geojson') as f:
         traffic_lights_locations = json.load(f)
 
     with open('segments.geojson') as f:
         traffic_light_segments = json.load(f)
 
-    traffic_light_geometries = []
+    traffic_light_geometries = [
+        # SG1
+        [
+            [
+                13.728873431682585,
+                51.03007550963579
+            ],
+            [
+                13.728240430355072,
+                51.030041772135085
+            ]
+        ],
+        # SG2
+        [
+            [
+                13.728149235248566,
+                51.03061783658934
+            ],
+            [
+                13.728147894144058,
+                51.030635548560134
+            ],
+            [
+                13.727828040719032,
+                51.03061488459357
+            ]
+        ]
+    ]
 
     # Snap each traffic light to the nearest segment
     print("OSM Preprocessing: snapping traffic lights to the nearest segment.")
@@ -90,7 +106,7 @@ def sync_things():
 
         traffic_light_geometries.append(connection)
 
-    base_idx = 50 # Offset for the lane IDs
+    base_idx = 0 # Offset for the lane IDs
     def get_idx():
         nonlocal base_idx
         base_idx += 1
@@ -99,7 +115,7 @@ def sync_things():
     print("Inserting the generated traffic lights into the FROST server.")
     for i, geometry in tqdm(enumerate(traffic_light_geometries)):
         thing_id = get_idx()
-        thing_name = f"SG{get_idx()}"
+        thing_name = f"SG{i}"
 
         locations_id = get_idx()
         location = {
