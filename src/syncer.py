@@ -106,7 +106,7 @@ def sync_things():
 
         traffic_light_geometries.append(connection)
 
-    base_idx = 0 # Offset for the lane IDs
+    base_idx = 1 # Offset for the lane IDs
     def get_idx():
         nonlocal base_idx
         base_idx += 1
@@ -115,7 +115,7 @@ def sync_things():
     print("Inserting the generated traffic lights into the FROST server.")
     for i, geometry in tqdm(enumerate(traffic_light_geometries)):
         thing_id = get_idx()
-        thing_name = f"SG{i}"
+        thing_name = f"SG{i+1}"
 
         locations_id = get_idx()
         location = {
