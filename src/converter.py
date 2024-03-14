@@ -51,7 +51,8 @@ async def run_tls_message_converter(things):
                 'resultTime': result_time,
                 'Datastream': { '@iot.id': ds_cycle_second }
             }
-            client.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', str(payload), retain=True)
+            client_outbound.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', str(payload), retain=True)
+            print(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_cycle_second})/Observations')
             return
         
         current_state = {
@@ -70,7 +71,8 @@ async def run_tls_message_converter(things):
             'resultTime': result_time,
             'Datastream': { '@iot.id': ds_primary_signal }
         }
-        client.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', str(payload), retain=True)
+        client_outbound.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', str(payload), retain=True)
+        print(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_primary_signal})/Observations')
 
     print('Starting TLS message converter')
     client_inbound.on_message = on_message
@@ -80,3 +82,15 @@ async def run_tls_message_converter(things):
     client_outbound.connect("priobike.vkw.tu-dresden.de", 20056, 60)
 
     client_inbound.loop_start()
+
+if __name__ == '__main__':
+    import asyncio
+
+    from syncer import get_all_things
+    things = get_all_things()
+    things_for_tls_message_converter = [t for t in things if t['name'] == 'SG1' or t['name'] == 'SG2']
+    asyncio.run(run_tls_message_converter(things_for_tls_message_converter))
+
+    # Wait forever
+    while True:
+        time.sleep(1)
