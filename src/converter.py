@@ -7,6 +7,7 @@ The TLS controller sends MQTT messages that are interpreted by the physical test
 This script converts these messages into FROST Observations to make them available to our prediction service.
 """
 
+import json
 import time
 
 import paho.mqtt.client as mqtt
@@ -51,7 +52,7 @@ async def run_tls_message_converter(things):
                 'resultTime': result_time,
                 'Datastream': { '@iot.id': ds_cycle_second }
             }
-            client_outbound.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', str(payload), retain=True)
+            client_outbound.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True)
             print(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_cycle_second})/Observations')
             return
         
@@ -71,7 +72,7 @@ async def run_tls_message_converter(things):
             'resultTime': result_time,
             'Datastream': { '@iot.id': ds_primary_signal }
         }
-        client_outbound.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', str(payload), retain=True)
+        client_outbound.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True)
         print(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_primary_signal})/Observations')
 
     print('Starting TLS message converter')

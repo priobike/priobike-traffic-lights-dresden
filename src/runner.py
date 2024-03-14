@@ -1,3 +1,4 @@
+import json
 import math
 import random
 import time
@@ -106,7 +107,7 @@ async def run_message_generator(things):
                     'resultTime': result_time,
                     'Datastream': { '@iot.id': ds_primary_signal }
                 }
-                client.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', str(payload), retain=True)
+                client.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True)
                 sent_messages += 1
 
             if should_publish_cycle_second:
@@ -116,7 +117,7 @@ async def run_message_generator(things):
                     'resultTime': result_time,
                     'Datastream': { '@iot.id': ds_cycle_second }
                 }
-                client.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', str(payload), retain=True)
+                client.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True)
                 sent_messages += 1
             
         print(f'Message Generator: sent {sent_messages} Observations so far')
