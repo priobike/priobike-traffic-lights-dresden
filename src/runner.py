@@ -11,7 +11,7 @@ amber = 2
 green = 3
 redamber = 4
 
-def generate_cycle(thing_name, length):
+def generate_cycle(thing_name):
     """
     Generate a random program (cycle) for a thing.
     """
@@ -39,22 +39,15 @@ def generate_cycle(thing_name, length):
         else:
             raise ValueError('Unknown state')
 
-    # In sum, the state lengths should be equal to the cycle length
-    sum_states_lengths = sum(states_lengths)
-    factor = length / sum_states_lengths
-    # Divide each state length
-    states_lengths = [math.ceil(factor * state_length) for state_length in states_lengths]
     cycle = []
     for state, state_length in zip(states, states_lengths):
         cycle.extend([state] * state_length)
-    cycle = cycle[:length] # Should not crop too much due to the rounding
-    assert len(cycle) == length
 
     return cycle
 
 async def run_message_generator(things):
     cycles_by_thing = {
-        thing['name']: generate_cycle(hash(thing['name']), random.choice([60, 75, 90])) for thing in things
+        thing['name']: generate_cycle(hash(thing['name'])) for thing in things
     }
     primary_signal_ids_by_thing = {}
     cycle_second_ids_by_thing = {}
