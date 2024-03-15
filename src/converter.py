@@ -54,7 +54,7 @@ def run_tls_message_converter(things):
                 'resultTime': result_time,
                 'Datastream': { '@iot.id': ds_cycle_second }
             }
-            client_outbound.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True)
+            client_outbound.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True, qos=1)
             log(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_cycle_second})/Observations')
             return
         
@@ -74,14 +74,14 @@ def run_tls_message_converter(things):
             'resultTime': result_time,
             'Datastream': { '@iot.id': ds_primary_signal }
         }
-        client_outbound.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True)
+        client_outbound.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True, qos=1)
         log(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_primary_signal})/Observations')
 
     def on_disconnect(client, userdata, rc):
         log(f'Disconnected with result code {rc}')
         raise ValueError('Disconnected')
 
-    log('Starting TLS message converter')
+    log('Connecting MQTT clients...')
     client_inbound.on_message = on_message
     client_inbound.on_disconnect = on_disconnect
     client_inbound.connect("priobike.vkw.tu-dresden.de", 20032, 60)
@@ -89,15 +89,18 @@ def run_tls_message_converter(things):
     client_inbound.subscribe("simulation/sg/SG2")
     client_outbound.on_disconnect = on_disconnect
     client_outbound.connect("priobike.vkw.tu-dresden.de", 20056, 60)
-
-    while True:
-        time.sleep(1)
+    client_inbound.loop_forever()
 
 if __name__ == '__main__':
     from syncer import get_all_things
+    log('Fetching things to process...')
     things = get_all_things()
+    if len(things) == 0:
+        log('No things found')
+        exit(1)
     things_for_tls_message_converter = [
         t for t in things 
         if t['name'] == 'SG1' or t['name'] == 'SG2'
     ]
+    log(f'Found {len(things_for_tls_message_converter)} things')
     run_tls_message_converter(things_for_tls_message_converter)

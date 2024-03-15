@@ -63,6 +63,7 @@ def run_message_generator(things):
     start = 0
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.loop_start()
     client.connect("priobike.vkw.tu-dresden.de", 20056, 60)
 
     last_primary_signal = {}
@@ -101,7 +102,7 @@ def run_message_generator(things):
                     'resultTime': result_time,
                     'Datastream': { '@iot.id': ds_primary_signal }
                 }
-                client.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True)
+                client.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True, qos=1)
                 sent_messages += 1
 
             if should_publish_cycle_second:
@@ -111,17 +112,21 @@ def run_message_generator(things):
                     'resultTime': result_time,
                     'Datastream': { '@iot.id': ds_cycle_second }
                 }
-                client.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True)
+                client.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True, qos=1)
                 sent_messages += 1
             
         log(f'Message Generator: sent {sent_messages} Observations so far')
 
-        # Wait for the next second
         time.sleep(1)
 
 if __name__ == '__main__':
     from syncer import get_all_things
+    log('Fetching things to process...')
     things = get_all_things()
+    log(f'Found {len(things)} things')
+    if len(things) == 0:
+        log('No things found')
+        exit(1)
     things_for_message_generator = [
         t for t in things 
         if t['name'] != 'SG1' and t['name'] != 'SG2'
