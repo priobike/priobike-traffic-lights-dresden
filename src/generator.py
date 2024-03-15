@@ -30,11 +30,11 @@ def generate_cycle(thing_name):
         if state == red:
             states_lengths.append(random.randint(5, 30))
         elif state == amber:
-            states_lengths.append(random.randint(5, 7))
+            states_lengths.append(random.randint(3, 5))
         elif state == green:
             states_lengths.append(random.randint(10, 30))
         elif state == redamber:
-            states_lengths.append(random.randint(2, 5))
+            states_lengths.append(1)
         elif state == dark:
             states_lengths.append(random.randint(5, 10))
         else:
