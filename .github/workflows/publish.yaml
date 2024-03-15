@@ -31,17 +31,34 @@ jobs:
           username: ${{ secrets.NEXUS_DOCKER_PUB_USERNAME }}
           password: ${{ secrets.NEXUS_DOCKER_PUB_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Generator - Extract metadata (tags, labels) for Docker
         id: meta
         # See: https://github.com/docker/metadata-action
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-generator
 
-      - name: Build and push Docker image
+      - name: Generator - Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
+          target: generator
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Converter - Extract metadata (tags, labels) for Docker
+        id: meta
+        # See: https://github.com/docker/metadata-action
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-converter
+
+      - name: Converter - Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          target: converter
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

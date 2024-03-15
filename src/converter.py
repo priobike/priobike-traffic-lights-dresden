@@ -12,8 +12,10 @@ import time
 
 import paho.mqtt.client as mqtt
 
+from log import log
 
-async def run_tls_message_converter(things):
+
+def run_tls_message_converter(things):
     primary_signal_ids_by_thing = {}
     cycle_second_ids_by_thing = {}
     for thing in things:
@@ -41,7 +43,7 @@ async def run_tls_message_converter(things):
         result_time = time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime(current_time))
         phenomenon_time = time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime(current_time))
 
-        print(f'Converting message for {thing_name} to Observation: {content}')
+        log(f'Converting message for {thing_name} to Observation: {content}')
         if content == 'startNewCycle':
             ds_cycle_second = cycle_second_ids_by_thing.get(thing_name)
             if ds_cycle_second is None:
@@ -53,7 +55,7 @@ async def run_tls_message_converter(things):
                 'Datastream': { '@iot.id': ds_cycle_second }
             }
             client_outbound.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True)
-            print(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_cycle_second})/Observations')
+            log(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_cycle_second})/Observations')
             return
         
         current_state = {
@@ -73,25 +75,29 @@ async def run_tls_message_converter(things):
             'Datastream': { '@iot.id': ds_primary_signal }
         }
         client_outbound.publish(f'v1.1/Datastreams({ds_primary_signal})/Observations', json.dumps(payload), retain=True)
-        print(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_primary_signal})/Observations')
+        log(f'Published Observation for {thing_name} to topic: v1.1/Datastreams({ds_primary_signal})/Observations')
 
-    print('Starting TLS message converter')
+    def on_disconnect(client, userdata, rc):
+        log(f'Disconnected with result code {rc}')
+        raise ValueError('Disconnected')
+
+    log('Starting TLS message converter')
     client_inbound.on_message = on_message
+    client_inbound.on_disconnect = on_disconnect
     client_inbound.connect("priobike.vkw.tu-dresden.de", 20032, 60)
     client_inbound.subscribe("simulation/sg/SG1")
     client_inbound.subscribe("simulation/sg/SG2")
+    client_outbound.on_disconnect = on_disconnect
     client_outbound.connect("priobike.vkw.tu-dresden.de", 20056, 60)
 
-    client_inbound.loop_start()
-
-if __name__ == '__main__':
-    import asyncio
-
-    from syncer import get_all_things
-    things = get_all_things()
-    things_for_tls_message_converter = [t for t in things if t['name'] == 'SG1' or t['name'] == 'SG2']
-    asyncio.run(run_tls_message_converter(things_for_tls_message_converter))
-
-    # Wait forever
     while True:
         time.sleep(1)
+
+if __name__ == '__main__':
+    from syncer import get_all_things
+    things = get_all_things()
+    things_for_tls_message_converter = [
+        t for t in things 
+        if t['name'] == 'SG1' or t['name'] == 'SG2'
+    ]
+    run_tls_message_converter(things_for_tls_message_converter)

@@ -4,6 +4,8 @@ import requests
 import shapely
 from tqdm import tqdm
 
+from log import log
+
 BASE_URL = "http://priobike.vkw.tu-dresden.de:20055/FROST-Server/v1.1/"
 
 def get_all_things():
@@ -21,12 +23,12 @@ def get_all_things():
 
 def sync_things():
     # Fetch all things from FROST server and delete them
-    print("Deleting all things from the FROST server.")
+    log("Deleting all things from the FROST server.")
     while True:
         response = requests.get(f'{BASE_URL}Things')
         if len(response.json()['value']) == 0:
             break
-        print(f"Deleting {len(response.json()['value'])} things")
+        log(f"Deleting {len(response.json()['value'])} things")
         for thing in tqdm(response.json()['value']):
             requests.delete(f'{BASE_URL}Things({thing["@iot.id"]})')
         assert response.status_code == 201 or response.status_code == 200
@@ -67,7 +69,7 @@ def sync_things():
     ]
 
     # Snap each traffic light to the nearest segment
-    print("OSM Preprocessing: snapping traffic lights to the nearest segment.")
+    log("OSM Preprocessing: snapping traffic lights to the nearest segment.")
     for feature in tqdm(traffic_lights_locations['features']):
         point = shapely.geometry.shape(feature['geometry'])
         nearest_line = None
@@ -87,7 +89,7 @@ def sync_things():
                     nearest_distance = distance
                     nearest_line = line
             else:
-                print(f'WARN Unknown geometry type: {segment["geometry"]["type"]}')
+                log(f'WARN Unknown geometry type: {segment["geometry"]["type"]}')
 
         nearest_point_idx = None
         nearest_point_distance = float('inf')
@@ -112,7 +114,7 @@ def sync_things():
         base_idx += 1
         return base_idx
 
-    print("Inserting the generated traffic lights into the FROST server.")
+    log("Inserting the generated traffic lights into the FROST server.")
     for i, geometry in tqdm(enumerate(traffic_light_geometries)):
         thing_name = f"SG{i+1}"
 
@@ -259,8 +261,8 @@ def sync_things():
         response = requests.post(f'{BASE_URL}Things', json=sg_json)
         assert response.status_code == 201 or response.status_code == 200
     
-    print("Finished inserting things.")
+    log("Finished inserting things.")
     return get_all_things()
 
 if __name__ == '__main__':
-    print(f'{len(sync_things())} Things in FROST server.')
+    log(f'{len(sync_things())} Things in FROST server.')

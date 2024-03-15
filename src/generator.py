@@ -1,9 +1,10 @@
 import json
-import math
 import random
 import time
 
 import paho.mqtt.client as mqtt
+
+from log import log
 
 dark = 0
 red = 1
@@ -45,7 +46,7 @@ def generate_cycle(thing_name):
 
     return cycle
 
-async def run_message_generator(things):
+def run_message_generator(things):
     cycles_by_thing = {
         thing['name']: generate_cycle(hash(thing['name'])) for thing in things
     }
@@ -69,13 +70,13 @@ async def run_message_generator(things):
     sent_messages = 0
 
     # Every second, look at the current time and publish the current state
-    print('Starting message generator')
+    log('Starting message generator')
     while True:
         for thing_name, cycle in cycles_by_thing.items():
             ds_primary_signal = primary_signal_ids_by_thing.get(thing_name)
             ds_cycle_second = cycle_second_ids_by_thing.get(thing_name)
             if ds_primary_signal is None or ds_cycle_second is None:
-                print(f'No datastream for thing {thing_name}')
+                log(f'No datastream for thing {thing_name}')
                 continue
 
             current_time = time.time()
@@ -113,7 +114,16 @@ async def run_message_generator(things):
                 client.publish(f'v1.1/Datastreams({ds_cycle_second})/Observations', json.dumps(payload), retain=True)
                 sent_messages += 1
             
-        print(f'Message Generator: sent {sent_messages} Observations so far')
+        log(f'Message Generator: sent {sent_messages} Observations so far')
 
         # Wait for the next second
         time.sleep(1)
+
+if __name__ == '__main__':
+    from syncer import get_all_things
+    things = get_all_things()
+    things_for_message_generator = [
+        t for t in things 
+        if t['name'] != 'SG1' and t['name'] != 'SG2'
+    ]
+    run_message_generator(things)
