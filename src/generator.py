@@ -131,4 +131,4 @@ if __name__ == '__main__':
         t for t in things 
         if t['name'] != 'SG1' and t['name'] != 'SG2'
     ]
-    run_message_generator(things)
+    run_message_generator(things_for_message_generator)
