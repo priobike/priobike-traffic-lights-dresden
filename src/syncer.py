@@ -9,12 +9,15 @@ from log import log
 BASE_URL = "http://priobike.vkw.tu-dresden.de:20055/FROST-Server/v1.1/"
 
 def get_all_things():
-    # Get all traffic lights
+    """
+    Get all things from the FROST server.
+    """
     things = []
     link = f'{BASE_URL}Things?$expand=Locations,Datastreams'
     while True:
         response = requests.get(link)
         things.extend(response.json()['value'])
+        # Check if we have a next page to fetch
         if '@iot.nextLink' in response.json():
             link = response.json()['@iot.nextLink']
             continue
@@ -22,6 +25,14 @@ def get_all_things():
     return things
 
 def sync_things():
+    """
+    Sync things to the FROST server.
+
+    This performs two steps:
+    1. Delete all existing things from the FROST server.
+    2. Insert the generated traffic lights into the FROST server.
+    Step 2 includes 2 TLS traffic lights that will get the names SG1 and SG2.
+    """
     # Fetch all things from FROST server and delete them
     log("Deleting all things from the FROST server.")
     while True:
