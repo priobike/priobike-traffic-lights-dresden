@@ -1,4 +1,5 @@
 import json
+import math
 import random
 import time
 from datetime import datetime
@@ -21,13 +22,24 @@ def generate_cycle(thing_name, hour_of_day):
     For the same thing, this function will always return the same cycle.
     """
     random.seed(hash(thing_name) + hour_of_day)
+
+    # Simulate that traffic lights turn off at night.
+    probability_of_dark = [
+        min(
+            1.0, 
+            0.7
+            + ((math.sin((math.pi / 4) * (h - 4)) + 1) / 2) * 0.1
+            + ((math.sin((math.pi / 12) * (h - 6)) + 1) / 2) * 0.3
+        )
+        for h in range(24)
+    ]
+    if random.random() < probability_of_dark[hour_of_day]:
+        return [dark] * 60
+
     states = random.choices([
         [red, green, red],
         [red, redamber, green, amber, red],
-    ], k=1, weights=[
-        50,
-        50,
-    ])[0]
+    ], k=1, weights=[ 50, 50 ])[0]
 
     states_lengths = []
     for state in states:
