@@ -42,7 +42,15 @@ def generate_cycles(thing_name):
         states = random.choices([
             [red, green, red],
             [red, redamber, green, amber, red],
-        ], k=1, weights=[ 50, 50 ])[0]
+            [red, red],
+            [green, green],
+        ], k=1, weights=[ 
+            # Based on analyses of real traffic light programs in Hamburg.
+            2930, 
+            2405,
+            1753,
+            622,
+        ])[0]
 
         states_lengths = []
         for state in states:
