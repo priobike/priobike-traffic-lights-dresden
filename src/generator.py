@@ -47,9 +47,23 @@ def generate_cycle(thing_name):
     return cycle
 
 def run_message_generator(things):
-    cycles_by_thing = {
-        thing['name']: generate_cycle(hash(thing['name'])) for thing in things
-    }
+    # Healthcheck vars
+    message_published = None
+    def on_publish(*args, **kwargs):
+        nonlocal message_published
+        message_published = time.time()
+
+    def on_disconnect(client, userdata, rc):
+        log(f'Disconnected with result code {rc}')
+        exit(1)
+
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_publish = on_publish
+    client.on_disconnect = on_disconnect
+    client.loop_start()
+    client.connect("priobike.vkw.tu-dresden.de", 20056, 60)
+
+    cycles_by_thing = { thing['name']: generate_cycle(hash(thing['name'])) for thing in things }
     primary_signal_ids_by_thing = {}
     cycle_second_ids_by_thing = {}
     for thing in things:
@@ -61,13 +75,7 @@ def run_message_generator(things):
                 cycle_second_ids_by_thing[thing['name']] = datastream['@iot.id']
 
     start = 0
-
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    client.loop_start()
-    client.connect("priobike.vkw.tu-dresden.de", 20056, 60)
-
     last_primary_signal = {}
-
     sent_messages = 0
 
     # Every second, look at the current time and publish the current state
@@ -118,6 +126,14 @@ def run_message_generator(things):
         log(f'Message Generator: sent {sent_messages} Observations so far')
 
         time.sleep(1)
+
+        # Healthcheck
+        with open('health.txt', 'w') as f:
+            if message_published is not None:
+                f.write(f'ok')
+            else:
+                f.write(f'error')
+        message_published = None
 
 if __name__ == '__main__':
     from syncer import get_all_things

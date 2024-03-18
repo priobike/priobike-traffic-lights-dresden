@@ -31,7 +31,18 @@ def run_tls_message_converter(things):
     client_inbound.username_pw_set(mqtt_username, mqtt_password)
     client_outbound = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
-    def on_message(client, userdata, message):
+    # Healthcheck vars
+    message_received = None
+    message_published = None
+
+    def on_publish(*args, **kwargs):
+        nonlocal message_published
+        message_published = time.time()
+
+    def on_inbound_message(client, userdata, message):
+        nonlocal message_received
+        message_received = time.time()
+
         content = message.payload.decode('utf-8')
         topic = message.topic
         
@@ -79,17 +90,32 @@ def run_tls_message_converter(things):
 
     def on_disconnect(client, userdata, rc):
         log(f'Disconnected with result code {rc}')
-        raise ValueError('Disconnected')
+        exit(1)
 
     log('Connecting MQTT clients...')
-    client_inbound.on_message = on_message
+    client_inbound.on_message = on_inbound_message
     client_inbound.on_disconnect = on_disconnect
+    client_inbound.on_publish = on_publish
     client_inbound.connect("priobike.vkw.tu-dresden.de", 20032, 60)
     client_inbound.subscribe("simulation/sg/SG1")
     client_inbound.subscribe("simulation/sg/SG2")
+    client_inbound.loop_start()
+
     client_outbound.on_disconnect = on_disconnect
+    client_outbound.on_publish = on_publish
     client_outbound.connect("priobike.vkw.tu-dresden.de", 20056, 60)
-    client_inbound.loop_forever()
+    client_outbound.loop_start()
+
+    while True:
+        time.sleep(60)
+        # Healthcheck
+        with open('health.txt', 'w') as f:
+            if message_received is not None and message_published is not None:
+                f.write(f'ok')
+            else:
+                f.write(f'error')
+        message_received = None
+        message_published = None
 
 if __name__ == '__main__':
     from syncer import get_all_things
