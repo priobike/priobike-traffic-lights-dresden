@@ -15,52 +15,65 @@ amber = 2
 green = 3
 redamber = 4
 
-def generate_cycle(thing_name, hour_of_day):
+def generate_cycles(thing_name):
     """
-    Generate a random program (cycle) for a thing.
+    Generate a random program (cycles per hour) for a thing.
 
     For the same thing, this function will always return the same cycle.
     """
-    random.seed(hash(thing_name) + hour_of_day)
+    cycles = []
+    for hour_of_day in range(24):
+        random.seed(hash(thing_name) + hour_of_day)
 
-    # Simulate that traffic lights turn off at night.
-    probability_of_dark = [
-        min(
-            1.0, 
-            0.7
-            + ((math.sin((math.pi / 4) * (h - 4)) + 1) / 2) * 0.1
-            + ((math.sin((math.pi / 12) * (h - 6)) + 1) / 2) * 0.3
-        )
-        for h in range(24)
-    ]
-    if random.random() < probability_of_dark[hour_of_day]:
-        return [dark] * 60
+        # Simulate that traffic lights turn off at night.
+        probability_of_dark = [
+            1 - min(
+                1.0, 
+                0.7
+                + ((math.sin((math.pi / 4) * (h - 4)) + 1) / 2) * 0.1
+                + ((math.sin((math.pi / 12) * (h - 6)) + 1) / 2) * 0.3
+            )
+            for h in range(24)
+        ]
+        if random.random() < probability_of_dark[hour_of_day]:
+            cycles.append([dark] * 60)
+            continue
 
-    states = random.choices([
-        [red, green, red],
-        [red, redamber, green, amber, red],
-    ], k=1, weights=[ 50, 50 ])[0]
+        states = random.choices([
+            [red, green, red],
+            [red, redamber, green, amber, red],
+        ], k=1, weights=[ 50, 50 ])[0]
 
-    states_lengths = []
-    for state in states:
-        if state == red:
-            states_lengths.append(random.randint(5, 30))
-        elif state == amber:
-            states_lengths.append(random.randint(3, 5)) # Constrained by German traffic light law
-        elif state == green:
-            states_lengths.append(random.randint(10, 30))
-        elif state == redamber:
-            states_lengths.append(1) # Constrained by German traffic light law
-        elif state == dark:
-            states_lengths.append(random.randint(5, 10))
-        else:
-            raise ValueError('Unknown state')
+        states_lengths = []
+        for state in states:
+            if state == red:
+                states_lengths.append(random.randint(5, 30))
+            elif state == amber:
+                states_lengths.append(random.randint(3, 5)) # Constrained by German traffic light law
+            elif state == green:
+                states_lengths.append(random.randint(10, 30))
+            elif state == redamber:
+                states_lengths.append(1) # Constrained by German traffic light law
+            elif state == dark:
+                states_lengths.append(random.randint(5, 10))
+            else:
+                raise ValueError('Unknown state')
 
-    cycle = []
-    for state, state_length in zip(states, states_lengths):
-        cycle.extend([state] * state_length)
+        cycle = []
+        for state, state_length in zip(states, states_lengths):
+            cycle.extend([state] * state_length)
+        cycles.append(cycle)
 
-    return cycle
+    # Don't change the program every hour.
+    random.seed(hash(thing_name))
+    probability_of_program_change = random.random()
+    program_ids = list(range(24))
+    for i in range(24):
+        if random.random() < probability_of_program_change:
+            cycles[i] = cycles[i - 1]
+            program_ids[i] = program_ids[i - 1]
+
+    return cycles, program_ids
 
 def run_message_generator(things):
     """
@@ -95,10 +108,7 @@ def run_message_generator(things):
 
     # Generate cycles for all things.
     cycles_by_thing_and_hour = { 
-        thing['name']: [
-            generate_cycle(thing['name'], hour)
-            for hour in range(24)
-        ] 
+        thing['name']: generate_cycles(thing['name'])
         for thing in things 
     }
 
@@ -119,18 +129,13 @@ def run_message_generator(things):
 
     start = 0 # Used as a reference point (unix time 0)
     last_primary_signal = {} # The last state of the primary signal for each thing
+    last_program = {} # The last program for each thing
     sent_messages = 0 # Counter for the number of messages sent
-    hour_ = datetime.now().hour # Used to check if the hour has changed
 
     # Every second, look at the current time and publish the current state
     log('Starting message generator')
     while True:
-        # Every time a new hour starts, all the signals change their program.
-        hour = datetime.now().hour
-        should_publish_signal_program = hour != hour_
-        hour_ = hour
-
-        for thing_name, cycles_by_hour in cycles_by_thing_and_hour.items():
+        for thing_name, (cycles_by_hour, program_ids_by_hour) in cycles_by_thing_and_hour.items():
             # Get the needed datastreams
             ds_primary_signal = primary_signal_ids_by_thing.get(thing_name)
             ds_cycle_second = cycle_second_ids_by_thing.get(thing_name)
@@ -139,12 +144,15 @@ def run_message_generator(things):
                 log(f'No datastream for thing {thing_name}')
                 continue
 
+            hour = datetime.now().hour
+
             # Get the current time in the cycle.
             cycle = cycles_by_hour[hour]
             current_time = time.time()
             current_second = int(current_time - start)
             current_state = cycle[current_second % len(cycle)]
             current_time_in_cycle = current_second % len(cycle)
+            current_program = program_ids_by_hour[hour]
 
             # Only publish the primary signal if it has changed.
             should_publish_primary_signal = False
@@ -153,6 +161,11 @@ def run_message_generator(things):
                 should_publish_primary_signal = True
             # Only publish the cycle second if it has changed.
             should_publish_cycle_second = current_time_in_cycle == 0
+            # Only publish the signal program if it has changed.
+            should_publish_signal_program = False
+            if thing_name not in last_program or last_program[thing_name] != current_program:
+                last_program[thing_name] = current_program
+                should_publish_signal_program = True
 
             # Prepare the Observation payload.
             result_time = time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime(current_time))
@@ -181,7 +194,7 @@ def run_message_generator(things):
             if should_publish_signal_program:
                 payload = {
                     'phenomenonTime': phenomenon_time,
-                    'result': hour, # The hour is our program ID
+                    'result': current_program,
                     'resultTime': result_time,
                     'Datastream': { '@iot.id': ds_signal_program }
                 }
