@@ -143,7 +143,11 @@ def run_message_generator(things):
     # Every second, look at the current time and publish the current state
     log('Starting message generator')
     while True:
+        idx = 0
         for thing_name, (cycles_by_hour, program_ids_by_hour) in cycles_by_thing_and_hour.items():
+            if idx % 4 == 0:
+                continue
+            idx += 1
             # Get the needed datastreams
             ds_primary_signal = primary_signal_ids_by_thing.get(thing_name)
             ds_cycle_second = cycle_second_ids_by_thing.get(thing_name)
