@@ -145,10 +145,9 @@ def run_message_generator(things):
     while True:
         idx = 0
         for thing_name, (cycles_by_hour, program_ids_by_hour) in cycles_by_thing_and_hour.items():
+            idx += 1
             if idx % 4 == 0:
                 continue
-            else:
-                idx += 1
             # Get the needed datastreams
             ds_primary_signal = primary_signal_ids_by_thing.get(thing_name)
             ds_cycle_second = cycle_second_ids_by_thing.get(thing_name)
