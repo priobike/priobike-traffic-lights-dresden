@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from log import log
 
-BASE_URL = "http://priobike.vkw.tu-dresden.de:20055/FROST-Server/v1.1/"
+BASE_URL = "https://priobike.vkw.tu-dresden.de/staging/frost-server-web/FROST-Server/v1.1/"
 
 def get_all_things():
     """
