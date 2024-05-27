@@ -6,10 +6,10 @@ import paho.mqtt.client as mqtt
 
 from log import log
 
-CTRLMESSAGES_MQTT_HOST = os.getenv('FROST_MQTT_HOST')
-CTRLMESSAGES_MQTT_PORT = int(os.getenv('FROST_MQTT_PORT'))
-CTRLMESSAGES_MQTT_USER = os.getenv('FROST_MQTT_USER')
-CTRLMESSAGES_MQTT_PASS = os.getenv('FROST_MQTT_PASS')
+CTRLMESSAGES_MQTT_HOST = os.getenv('CTRLMESSAGES_MQTT_HOST')
+CTRLMESSAGES_MQTT_PORT = int(os.getenv('CTRLMESSAGES_MQTT_PORT'))
+CTRLMESSAGES_MQTT_USER = os.getenv('CTRLMESSAGES_MQTT_USER')
+CTRLMESSAGES_MQTT_PASS = os.getenv('CTRLMESSAGES_MQTT_PASS')
 if any(v is None for v in [CTRLMESSAGES_MQTT_HOST, CTRLMESSAGES_MQTT_PORT, CTRLMESSAGES_MQTT_USER, CTRLMESSAGES_MQTT_PASS]):
     log('Missing environment variables')
     exit(1)
@@ -48,8 +48,8 @@ def run_tls_message_converter(things):
     if CTRLMESSAGES_MQTT_USER and CTRLMESSAGES_MQTT_PASS:
         client_inbound.username_pw_set(CTRLMESSAGES_MQTT_USER, CTRLMESSAGES_MQTT_PASS)
     client_outbound = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    if CTRLMESSAGES_MQTT_USER and CTRLMESSAGES_MQTT_PASS:
-        client_outbound.username_pw_set(CTRLMESSAGES_MQTT_USER, CTRLMESSAGES_MQTT_PASS)
+    if FROST_MQTT_USER and FROST_MQTT_PASS:
+        client_outbound.username_pw_set(FROST_MQTT_USER, FROST_MQTT_PASS)
 
     # Define two healthcheck vars to monitor the connection to the MQTT broker.
     message_received = None # Will be set to a timestamp when a message is received.
@@ -142,8 +142,6 @@ def run_tls_message_converter(things):
     client_outbound.on_connect = lambda *args, **kwargs: log('Connected to outbound MQTT broker')
     client_outbound.on_disconnect = on_disconnect
     client_outbound.on_publish = on_publish
-    if FROST_MQTT_USER and FROST_MQTT_PASS:
-        client_outbound.username_pw_set(FROST_MQTT_USER, FROST_MQTT_PASS)
     client_outbound.connect(FROST_MQTT_HOST, FROST_MQTT_PORT, 60)
     client_outbound.loop_start() # Important, otherwise the client won't publish any messages.
 
