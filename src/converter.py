@@ -1,10 +1,26 @@
 import json
+import os
 import time
 
 import paho.mqtt.client as mqtt
 
 from log import log
 
+CTRLMESSAGES_MQTT_HOST = os.getenv('FROST_MQTT_HOST')
+CTRLMESSAGES_MQTT_PORT = int(os.getenv('FROST_MQTT_PORT'))
+CTRLMESSAGES_MQTT_USER = os.getenv('FROST_MQTT_USER')
+CTRLMESSAGES_MQTT_PASS = os.getenv('FROST_MQTT_PASS')
+if any(v is None for v in [CTRLMESSAGES_MQTT_HOST, CTRLMESSAGES_MQTT_PORT, CTRLMESSAGES_MQTT_USER, CTRLMESSAGES_MQTT_PASS]):
+    log('Missing environment variables')
+    exit(1)
+
+FROST_MQTT_HOST = os.getenv('FROST_MQTT_HOST')
+FROST_MQTT_PORT = int(os.getenv('FROST_MQTT_PORT'))
+FROST_MQTT_USER = os.getenv('FROST_MQTT_USER')
+FROST_MQTT_PASS = os.getenv('FROST_MQTT_PASS')
+if any(v is None for v in [FROST_MQTT_HOST, FROST_MQTT_PORT, FROST_MQTT_USER, FROST_MQTT_PASS]):
+    log('Missing environment variables')
+    exit(1)
 
 def run_tls_message_converter(things):
     """
@@ -29,8 +45,11 @@ def run_tls_message_converter(things):
 
     # Initiate the MQTT clients: one for inbound messages and one for outbound messages.
     client_inbound = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    client_inbound.username_pw_set("backend", "cmoMyQu3cKgNo8")
+    if CTRLMESSAGES_MQTT_USER and CTRLMESSAGES_MQTT_PASS:
+        client_inbound.username_pw_set(CTRLMESSAGES_MQTT_USER, CTRLMESSAGES_MQTT_PASS)
     client_outbound = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    if CTRLMESSAGES_MQTT_USER and CTRLMESSAGES_MQTT_PASS:
+        client_outbound.username_pw_set(CTRLMESSAGES_MQTT_USER, CTRLMESSAGES_MQTT_PASS)
 
     # Define two healthcheck vars to monitor the connection to the MQTT broker.
     message_received = None # Will be set to a timestamp when a message is received.
@@ -111,17 +130,21 @@ def run_tls_message_converter(things):
 
     log('Connecting MQTT clients...')
     client_inbound.on_message = on_inbound_message
+    client_inbound.on_connect = lambda *args, **kwargs: log('Connected to inbound MQTT broker')
     client_inbound.on_disconnect = on_disconnect
     client_inbound.on_publish = on_publish
-    client_inbound.connect("priobike.vkw.tu-dresden.de", 20032, 60)
+    client_inbound.connect(CTRLMESSAGES_MQTT_HOST, CTRLMESSAGES_MQTT_PORT, 60)
     # Only two topics are relevant for the TLS controller.
     client_inbound.subscribe("simulation/sg/SG1")
     client_inbound.subscribe("simulation/sg/SG2")
     client_inbound.loop_start() # Important, otherwise the client won't receive any messages.
 
+    client_outbound.on_connect = lambda *args, **kwargs: log('Connected to outbound MQTT broker')
     client_outbound.on_disconnect = on_disconnect
     client_outbound.on_publish = on_publish
-    client_outbound.connect("priobike.vkw.tu-dresden.de", 20056, 60)
+    if FROST_MQTT_USER and FROST_MQTT_PASS:
+        client_outbound.username_pw_set(FROST_MQTT_USER, FROST_MQTT_PASS)
+    client_outbound.connect(FROST_MQTT_HOST, FROST_MQTT_PORT, 60)
     client_outbound.loop_start() # Important, otherwise the client won't publish any messages.
 
     # Wait forever, but periodically check the health of the MQTT connections.

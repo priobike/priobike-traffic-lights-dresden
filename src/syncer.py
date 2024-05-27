@@ -1,4 +1,5 @@
 import json
+import os
 
 import requests
 import shapely
@@ -6,14 +7,16 @@ from tqdm import tqdm
 
 from log import log
 
-BASE_URL = "https://priobike.vkw.tu-dresden.de/staging/frost-server-web/FROST-Server/v1.1/"
+FROST_BASE_URL = os.environ.get('FROST_BASE_URL')
+if FROST_BASE_URL is None:
+    raise ValueError('FROST_BASE_URL environment variable is not set.')
 
 def get_all_things():
     """
     Get all things from the FROST server.
     """
     things = []
-    link = f'{BASE_URL}Things?$expand=Locations,Datastreams'
+    link = f'{FROST_BASE_URL}Things?$expand=Locations,Datastreams'
     while True:
         response = requests.get(link)
         things.extend(response.json()['value'])
@@ -36,12 +39,12 @@ def sync_things():
     # Fetch all things from FROST server and delete them
     log("Deleting all things from the FROST server.")
     while True:
-        response = requests.get(f'{BASE_URL}Things')
+        response = requests.get(f'{FROST_BASE_URL}Things')
         if len(response.json()['value']) == 0:
             break
         log(f"Deleting {len(response.json()['value'])} things")
         for thing in tqdm(response.json()['value']):
-            requests.delete(f'{BASE_URL}Things({thing["@iot.id"]})')
+            requests.delete(f'{FROST_BASE_URL}Things({thing["@iot.id"]})')
         assert response.status_code == 201 or response.status_code == 200
 
     with open('locations.geojson') as f:
@@ -269,7 +272,7 @@ def sync_things():
             ]
         }
 
-        response = requests.post(f'{BASE_URL}Things', json=sg_json)
+        response = requests.post(f'{FROST_BASE_URL}Things', json=sg_json)
         assert response.status_code == 201 or response.status_code == 200
     
     log("Finished inserting things.")

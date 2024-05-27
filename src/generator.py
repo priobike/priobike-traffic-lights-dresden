@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import random
 import time
 from datetime import datetime
@@ -7,6 +8,14 @@ from datetime import datetime
 import paho.mqtt.client as mqtt
 
 from log import log
+
+FROST_MQTT_HOST = os.getenv('FROST_MQTT_HOST')
+FROST_MQTT_PORT = int(os.getenv('FROST_MQTT_PORT'))
+FROST_MQTT_USER = os.getenv('FROST_MQTT_USER')
+FROST_MQTT_PASS = os.getenv('FROST_MQTT_PASS')
+if any(v is None for v in [FROST_MQTT_HOST, FROST_MQTT_PORT, FROST_MQTT_USER, FROST_MQTT_PASS]):
+    log('Missing environment variables')
+    exit(1)
 
 # Define the possible states of a traffic light.
 dark = 0
@@ -112,7 +121,9 @@ def run_message_generator(things):
     client.on_publish = on_publish
     client.on_disconnect = on_disconnect
     client.loop_start()
-    client.connect("priobike.vkw.tu-dresden.de", 20056, 60)
+    if FROST_MQTT_USER and FROST_MQTT_PASS:
+        client.username_pw_set(FROST_MQTT_USER, FROST_MQTT_PASS)
+    client.connect(FROST_MQTT_HOST, FROST_MQTT_PORT, 60)
 
     # Generate cycles for all things.
     cycles_by_thing_and_hour = { 
