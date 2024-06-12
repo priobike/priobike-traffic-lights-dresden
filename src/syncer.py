@@ -85,6 +85,10 @@ def sync_things():
     # Snap each traffic light to the nearest segment
     log("OSM Preprocessing: snapping traffic lights to the nearest segment.")
     for feature in tqdm(traffic_lights_locations['features']):
+        osm_id = feature['properties']['@id']
+        # Exclude traffic lights at POT building to not interfere with our real traffic lights there.
+        if osm_id == "node/2671296691" or "node/2553635365":
+            continue
         point = shapely.geometry.shape(feature['geometry'])
         nearest_line = None
         nearest_distance = float('inf')
