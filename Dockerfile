@@ -3,10 +3,10 @@ FROM python:3.12 as converter
 # Needed to fetch all things from the server
 ENV FROST_BASE_URL="https://priobike.vkw.tu-dresden.de/staging/frost-server-web/FROST-Server/v1.1/"
 # Broker that publishes the control messages
-ENV CTRLMESSAGES_MQTT_HOST="priobike.vkw.tu-dresden.de"
-ENV CTRLMESSAGES_MQTT_PORT="20032"
-ENV CTRLMESSAGES_MQTT_USER="backend"
-ENV CTRLMESSAGES_MQTT_PASS="nWK8Am3d2Hbupx"
+ENV CTRLMESSAGES_MQTT_HOST=""
+ENV CTRLMESSAGES_MQTT_PORT=""
+ENV CTRLMESSAGES_MQTT_USER=""
+ENV CTRLMESSAGES_MQTT_PASS=""
 # Needed to publish observations to the mqtt broker
 ENV FROST_MQTT_HOST="priobike.vkw.tu-dresden.de"
 ENV FROST_MQTT_PORT="20056"
